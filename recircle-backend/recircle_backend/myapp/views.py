@@ -1,21 +1,18 @@
-from rest_framework import generics, permissions
+from rest_framework import permissions, viewsets
 
 from .models import Item
 from .serializers import ItemSerializer
 
 
-class ItemListCreateView(generics.ListCreateAPIView):
-    queryset = Item.objects.filter(is_available=True).order_by("-created_at")
+class ItemViewSet(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing items.
+    """
+
+    queryset = Item.objects.all().order_by("-created_at")
     serializer_class = ItemSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        # Sets the logged-in user as the owner automatically
+        # Automatically set the owner to the current user
         serializer.save(owner=self.request.user)
-
-
-class ItemDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    # Later, we can add logic so only the owner can update/delete

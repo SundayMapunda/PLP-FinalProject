@@ -1,15 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from .views import ItemViewSet
 
 router = DefaultRouter()
-router.register(
-    r"items", views.ItemViewSet
-)  # We'll use ViewSets for efficiency later, but let's start with this.
+router.register(r"items", ItemViewSet)
 
 urlpatterns = [
-    path("api/", include(router.urls)),
-    path("api/items/", views.ItemListCreateView.as_view(), name="item-list-create"),
-    path("api/items/<int:pk>/", views.ItemDetailView.as_view(), name="item-detail"),
+    path("", include(router.urls)),
 ]
