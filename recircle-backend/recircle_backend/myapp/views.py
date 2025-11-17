@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Item
@@ -38,6 +39,19 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def test_auth(request):
+    """Test endpoint to verify JWT authentication works"""
+    return Response(
+        {
+            "message": f"Hello {request.user.username}! JWT authentication is working!",
+            "user_id": request.user.id,
+            "email": request.user.email,
+        }
+    )
 
 
 # ItemViewSet remains the same
