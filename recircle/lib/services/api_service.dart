@@ -1,11 +1,22 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api'; // Android emulator
-  // static const String baseUrl = 'http://localhost:8000/api'; // iOS simulator
-  // static const String baseUrl = 'http://YOUR_LOCAL_IP:8000/api'; // Physical device
+  // Smart base URL detection for different platforms
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000/api'; // Android emulator
+    } else if (Platform.isIOS) {
+      return 'http://localhost:8000/api'; // iOS simulator
+    } else if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      // For Linux/Windows/Mac desktop, use localhost or your machine's IP
+      return 'http://localhost:8000/api'; // Change to your IP if needed
+    } else {
+      return 'http://localhost:8000/api'; // Fallback
+    }
+  }
 
   // Helper method to get headers with auth token
   Future<Map<String, String>> _getHeaders() async {
@@ -23,19 +34,41 @@ class ApiService {
 
   // Authentication Methods
   Future<Map<String, dynamic>> login(String username, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/token/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'username': username, 'password': password}),
-    );
+    try {
+      print('Attempting login to: $baseUrl/token/'); // Debug
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Login failed: ${response.statusCode}');
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/token/'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'username': username, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 10)); // Add timeout
+
+      print('Login response status: ${response.statusCode}'); // Debug
+      print('Login response body: ${response.body}'); // Debug
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception(
+          'Login failed: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } on SocketException catch (e) {
+      throw Exception(
+        'Network error: Cannot connect to server. Is Django running? $e',
+      );
+    } on HttpException catch (e) {
+      throw Exception('HTTP error: $e');
+    } on FormatException catch (e) {
+      throw Exception('Response format error: $e');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
     }
   }
 
+  // ... keep the rest of your methods (register, fetchItems, createItem) the same
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users/'),
@@ -50,7 +83,6 @@ class ApiService {
     }
   }
 
-  // Item Methods
   Future<List<dynamic>> fetchItems() async {
     final response = await http.get(
       Uri.parse('$baseUrl/items/'),
@@ -70,16 +102,13 @@ class ApiService {
   ) async {
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/items/'));
 
-    // Add headers with auth
     final headers = await _getHeaders();
     request.headers.addAll(headers);
 
-    // Add form fields
     itemData.forEach((key, value) {
       request.fields[key] = value.toString();
     });
 
-    // Add image if provided
     if (imageBytes != null) {
       request.files.add(
         http.MultipartFile.fromBytes(

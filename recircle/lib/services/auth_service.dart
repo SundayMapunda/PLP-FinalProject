@@ -11,35 +11,58 @@ class AuthService {
     required String refreshToken,
     required String username,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_accessTokenKey, accessToken);
-    await prefs.setString(_refreshTokenKey, refreshToken);
-    await prefs.setString(_usernameKey, username);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_accessTokenKey, accessToken);
+      await prefs.setString(_refreshTokenKey, refreshToken);
+      await prefs.setString(_usernameKey, username);
+    } catch (e) {
+      print('Error saving tokens: $e');
+    }
   }
 
   // Get stored access token
   static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_accessTokenKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_accessTokenKey);
+    } catch (e) {
+      print('Error getting access token: $e');
+      return null;
+    }
   }
 
   // Check if user is logged in
   static Future<bool> isLoggedIn() async {
-    final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    try {
+      final token = await getAccessToken();
+      return token != null && token.isNotEmpty;
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
   }
 
   // Get current username
   static Future<String?> getUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_usernameKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_usernameKey);
+    } catch (e) {
+      print('Error getting username: $e');
+      return null;
+    }
   }
 
   // Logout - clear all stored data
   static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_accessTokenKey);
-    await prefs.remove(_refreshTokenKey);
-    await prefs.remove(_usernameKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_accessTokenKey);
+      await prefs.remove(_refreshTokenKey);
+      await prefs.remove(_usernameKey);
+    } catch (e) {
+      print('Error during logout: $e');
+    }
   }
 }

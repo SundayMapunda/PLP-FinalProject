@@ -1,3 +1,5 @@
+import 'user.dart';
+
 class Item {
   final int id;
   final User owner;
