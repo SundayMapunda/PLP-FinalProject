@@ -28,4 +28,28 @@ class User {
       createdAt: DateTime.parse(json['created_at']),
     );
   }
+
+  // Helper methods for the UI
+  String get displayName => username;
+
+  String get joinDate {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return 'Joined ${months[createdAt.month - 1]} ${createdAt.year}';
+  }
+
+  bool get hasBio => bio != null && bio!.isNotEmpty;
+  bool get hasLocation => location != null && location!.isNotEmpty;
 }

@@ -4,6 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'services/auth_service.dart';
 import 'screens/create_item_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(ReCircleApp());
@@ -40,7 +41,8 @@ class ReCircleApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/create_item': (context) => const CreateItemScreen(), // ← ADD THIS
+        '/create_item': (context) => const CreateItemScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

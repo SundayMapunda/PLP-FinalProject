@@ -128,4 +128,49 @@ class ApiService {
       throw Exception('Failed to create item: ${response.statusCode}');
     }
   }
+
+  // Get current user profile
+  Future<Map<String, dynamic>> getCurrentUserProfile() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/me/'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load user profile: ${response.statusCode}');
+    }
+  }
+
+  // Get user's items
+  Future<List<dynamic>> getUserItems(int userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId/items/'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load user items: ${response.statusCode}');
+    }
+  }
+
+  // Update user profile
+  Future<Map<String, dynamic>> updateUserProfile(
+    Map<String, dynamic> userData,
+  ) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/users/update_me/'),
+      headers: await _getHeaders(),
+      body: json.encode(userData),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to update profile: ${response.statusCode}');
+    }
+  }
 }
