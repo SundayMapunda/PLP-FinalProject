@@ -8,36 +8,43 @@ from .models import Item
 from .serializers import ItemSerializer, UserRegistrationSerializer, UserSerializer
 
 
+# Update your UserViewSet to include profile endpoints
 class UserViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
-    permission_classes = [permissions.AllowAny]  # Let anyone do anything for now
+    permission_classes = [permissions.AllowAny]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'list']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if self.action == 'create':
             return UserRegistrationSerializer
         return UserSerializer
 
-    # Remove the list() override completely for now
-    # Let DRF handle everything
-
-    @action(
-        detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated]
-    )
+    @action(detail=False, methods=['get'])
     def me(self, request):
-        """Get current user's profile - this one still requires auth"""
+        """Get current user's profile"""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(
-        detail=False,
-        methods=["put", "patch"],
-        permission_classes=[permissions.IsAuthenticated],
-    )
+    @action(detail=False, methods=['put', 'patch'])
     def update_me(self, request):
-        """Update current user's profile - requires auth"""
+        """Update current user's profile"""
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def items(self, request, pk=None):
+        """Get items belonging to a specific user"""
+        user = self.get_object()
+        items = Item.objects.filter(owner=user, is_available=True)
+        serializer = ItemSerializer(items, many=True)
         return Response(serializer.data)
 
 
@@ -62,3 +69,4 @@ class ItemViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+        

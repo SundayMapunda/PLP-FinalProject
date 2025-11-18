@@ -4,13 +4,37 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/user.dart';
 import '../models/item.dart';
 import '../services/api_service.dart';
-import '../services/auth_service.dart';
 import 'item_detail_screen.dart';
 
 class ProfileScreen extends HookWidget {
   const ProfileScreen({super.key});
 
   // Helper method: Build stat item
+  Widget _buildStatItem({
+    required int count,
+    required String label,
+    required IconData icon,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green[100],
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: Colors.green[700]),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          count.toString(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+      ],
+    );
+  }
+
   // Helper method: Build info row
   Widget _buildInfoRow(IconData icon, String title, String value) {
     return Padding(
@@ -141,10 +165,9 @@ class ProfileScreen extends HookWidget {
   }
 
   // Build user stats section
-  // Build compact user stats section
-  Widget _buildCompactStats(List<Item> userItems) {
+  Widget _buildStats(User? user, List<Item> userItems) {
     return Container(
-      padding: const EdgeInsets.all(12), // Smaller padding
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.green[50],
         borderRadius: BorderRadius.circular(12),
@@ -152,18 +175,18 @@ class ProfileScreen extends HookWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildCompactStatItem(
+          _buildStatItem(
             count: userItems.length,
-            label: 'Items',
+            label: 'Items Shared',
             icon: Icons.recycling,
           ),
-          _buildCompactStatItem(
-            count: 12, // Mock data
-            label: 'Connects',
+          _buildStatItem(
+            count: user?.id ?? 0, // Using user ID as mock connections for now
+            label: 'Connections',
             icon: Icons.people,
           ),
-          _buildCompactStatItem(
-            count: 3, // Mock data
+          _buildStatItem(
+            count: 3, // We'll add real reviews later
             label: 'Reviews',
             icon: Icons.star,
           ),
@@ -172,43 +195,10 @@ class ProfileScreen extends HookWidget {
     );
   }
 
-  // Build compact stat item
-  Widget _buildCompactStatItem({
-    required int count,
-    required String label,
-    required IconData icon,
-  }) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6), // Smaller padding
-          decoration: BoxDecoration(
-            color: Colors.green[100],
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, size: 16, color: Colors.green[700]), // Smaller icon
-        ),
-        const SizedBox(height: 2),
-        Text(
-          count.toString(),
-          style: const TextStyle(
-            fontSize: 14, // Smaller font
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10, // Smaller font
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-
   // Build user info section
   Widget _buildUserInfo(User? user) {
+    if (user == null) return const SizedBox();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -216,7 +206,7 @@ class ProfileScreen extends HookWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -225,25 +215,21 @@ class ProfileScreen extends HookWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (user?.hasBio ?? false) ...[
+          if (user.hasBio) ...[
             const Text(
               'About Me',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(user!.bio!, style: const TextStyle(fontSize: 16, height: 1.5)),
+            Text(user.bio!, style: const TextStyle(fontSize: 16, height: 1.5)),
             const SizedBox(height: 16),
           ],
-          _buildInfoRow(Icons.email, 'Email', user?.email ?? ''),
-          if (user?.hasLocation ?? false)
-            _buildInfoRow(Icons.location_on, 'Location', user!.location!),
-          if (user?.phoneNumber != null)
-            _buildInfoRow(Icons.phone, 'Phone', user!.phoneNumber!),
-          _buildInfoRow(
-            Icons.calendar_today,
-            'Member since',
-            user?.joinDate ?? '',
-          ),
+          _buildInfoRow(Icons.email, 'Email', user.email),
+          if (user.hasLocation)
+            _buildInfoRow(Icons.location_on, 'Location', user.location!),
+          if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty)
+            _buildInfoRow(Icons.phone, 'Phone', user.phoneNumber!),
+          _buildInfoRow(Icons.calendar_today, 'Member since', user.joinDate),
         ],
       ),
     );
@@ -273,8 +259,7 @@ class ProfileScreen extends HookWidget {
               label: const Text('Share First Item'),
               onPressed: () {
                 Navigator.pushNamed(context, '/create_item').then((_) {
-                  // Refresh after potentially adding item
-                  // We'll need to pass a callback or use state management
+                  // We'll implement refresh logic later
                 });
               },
             ),
@@ -305,36 +290,27 @@ class ProfileScreen extends HookWidget {
     final isLoading = useState(true);
     final errorMessage = useState<String?>(null);
 
-    // Fetch user profile and their items
+    // Fetch REAL user profile and items
     Future<void> fetchUserData() async {
       try {
         isLoading.value = true;
         errorMessage.value = null;
 
-        // For now, we'll use the current user. Later we can fetch by ID
-        final currentUsername = await AuthService.getUsername();
-
-        // In a real app, we'd fetch user by ID from API
-        // For now, we'll create a mock user from stored data
-        final userData = User(
-          id: 1,
-          username: currentUsername ?? 'Unknown User',
-          email: 'user@example.com', // We'd get this from API
-          bio: 'Eco-warrior fighting for a circular economy! ♻️',
-          location: 'Sicily, Italy',
-          phoneNumber: '+39 123 456 7890',
-          createdAt: DateTime.now().subtract(const Duration(days: 30)),
-        );
+        // Fetch current user profile from API
+        final userResponse = await ApiService().getCurrentUserProfile();
+        final userData = User.fromJson(userResponse);
 
         user.value = userData;
 
-        // Fetch user's items
-        final response = await ApiService().fetchItems();
-        final allItems = response.map((data) => Item.fromJson(data)).toList();
+        // Fetch ALL items and filter by current user
+        final allItemsResponse = await ApiService().fetchItems();
+        final allItems = allItemsResponse
+            .map((data) => Item.fromJson(data))
+            .toList();
 
-        // Filter to show only current user's items (simplified)
+        // Filter to show only current user's items
         userItems.value = allItems
-            .where((item) => item.owner.username == currentUsername)
+            .where((item) => item.owner.id == userData.id)
             .toList();
       } catch (e) {
         errorMessage.value = 'Failed to load profile: $e';
@@ -365,6 +341,7 @@ class ProfileScreen extends HookWidget {
               );
             },
           ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: fetchUserData),
         ],
       ),
       body: isLoading.value
@@ -390,9 +367,8 @@ class ProfileScreen extends HookWidget {
               child: Column(
                 children: [
                   // Profile Header
-                  // Profile Header
                   Container(
-                    padding: const EdgeInsets.all(16), // Reduced padding
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       gradient: LinearGradient(
@@ -408,7 +384,7 @@ class ProfileScreen extends HookWidget {
                           children: [
                             // Avatar
                             Container(
-                              width: 80, // Smaller avatar
+                              width: 80,
                               height: 80,
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -420,7 +396,7 @@ class ProfileScreen extends HookWidget {
                               ),
                               child: const Icon(
                                 Icons.person,
-                                size: 48, // Smaller icon
+                                size: 48,
                                 color: Colors.green,
                               ),
                             ),
@@ -433,7 +409,7 @@ class ProfileScreen extends HookWidget {
                                   Text(
                                     user.value?.displayName ?? 'Unknown User',
                                     style: const TextStyle(
-                                      fontSize: 20, // Slightly smaller
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
@@ -443,9 +419,7 @@ class ProfileScreen extends HookWidget {
                                     user.value?.joinDate ?? '',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
+                                      color: Colors.white.withOpacity(0.8),
                                     ),
                                   ),
                                 ],
@@ -454,8 +428,8 @@ class ProfileScreen extends HookWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // Compact Stats
-                        _buildCompactStats(userItems.value),
+                        // Stats
+                        _buildStats(user.value, userItems.value),
                       ],
                     ),
                   ),
