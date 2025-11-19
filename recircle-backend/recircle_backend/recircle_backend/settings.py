@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,12 +26,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-6q^8fx70xdi^7lxvcbqnz(4#tw3d+x+5_3kt&vjnqa%tmo4xct"  # TODO: Change this!
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "django-insecure-6q^8fx70xdi^7lxvcbqnz(4#tw3d+x+5_3kt&vjnqa%tmo4xct"
+)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # TODO: Set to False in production
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "192.168.42.73"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    ".onrender.com",  # Render.com domain
+    #   '.yourdomain.com', # Your custom domain if any
+]
 
 # Application definition
 # Installed Apps
@@ -49,16 +58,14 @@ INSTALLED_APPS = [
     "myapp",
 ]
 
-# CORS Configuration - CRITICAL for Flutter connection
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React dev server (if any)
-    "http://127.0.0.1:3000",
-    "http://localhost:53519",  # Flutter web
-    "http://127.0.0.1:53519",
-]
-
-# For development only - allows all origins (be more restrictive in production)
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://your-flutter-app.com",  # Your Flutter web domain
+        "http://localhost:3000",
+    ]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # Should be at the top!
@@ -94,19 +101,14 @@ WSGI_APPLICATION = "recircle_backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database - Using your Neon Postgres
+# Database - Use Neon PostgreSQL
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),  # Get from Neon connection string
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),  # Your Neon host
-        "PORT": os.getenv("DB_PORT"),
-        "OPTIONS": {"sslmode": "require"},
-    }
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -163,10 +165,10 @@ AUTH_USER_MODEL = "myapp.CustomUser"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 # Media files (uploaded images)
@@ -177,3 +179,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: recircle-backend
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn recircle_backend.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: WEB_CONCURRENCY
+        value: 4
