@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+# Exit on error
 set -o errexit
 
-# Create directories
+# Install dependencies first!
+pip install -r requirements.txt
+
+# Create static and media directories
 mkdir -p staticfiles
 mkdir -p media
 
@@ -11,5 +15,4 @@ python manage.py migrate
 # Collect static files
 python manage.py collectstatic --no-input
 
-# Note: Removed superuser creation for security
-# Create admin user manually through Django admin if needed
+echo "✅ Build completed successfully!"
