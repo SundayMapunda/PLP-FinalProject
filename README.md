@@ -41,7 +41,7 @@ Waste reduction starts with responsible consumption and extending the lifecycle 
      ```
    - For Django:
      ```bash
-     cd recircle-backend
+     cd recircle-backend/recircle_backend
 
      Create virtual environment:
      python -m venv venv
