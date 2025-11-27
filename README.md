@@ -69,6 +69,9 @@ _ReCircle_ uses:
 - **Backend**: Python (Django) for real-time listings, authentication and messaging
 - **Notifications**: Push notifications for messages and item updates
 
+## App APK
+Download recircle apk using this link: https://sundaymapunda.github.io/recircle/
+
 ## 💡 Contributing
 
 We welcome contributions from everyone!
