@@ -21,9 +21,8 @@ Waste reduction starts with responsible consumption and extending the lifecycle 
 
 ### Prerequisites
 
-- [Flutter](https://flutter.dev/) installed.
-- Dart SDK
-- [Firebase](https://firebase.google.com/) or alternative backend system
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) installed.
+- Python
 
 ### Installation
 
