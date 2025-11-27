@@ -29,24 +29,38 @@ Waste reduction starts with responsible consumption and extending the lifecycle 
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/SundayMapunda/PLP-Final-Project.git
-   cd PLP-Final-Project
+   git clone https://github.com/SundayMapunda/PLP-FinalProject.git
+   cd PLP-FinalProject
    ```
 
 2. **Install dependencies**
    - For Flutter:
      ```bash
+     cd recircle
      flutter pub get
      ```
+   - For Django:
+     ```bash
+     cd recircle-backend
 
-3. **Configure Backend**
-   - Set up Firebase or another backend provider.
-   - Update configuration files (`google-services.json`, `firebaseConfig.js`, etc.)
+     Create virtual environment:
+     python -m venv venv
 
-4. **Run the App**
+     Activate:
+     Linux: source venv/bin/activate
+     Windows: venv\Scripts\activate
+
+     pip install -r requirements.txt
+     ```
+
+3. **Run the App**
    - For Flutter:
      ```bash
      flutter run
+     ```
+   - For Django:
+     ```bash
+     python manage.py runserver
      ```
 
 ## 🧩 Architecture Overview
