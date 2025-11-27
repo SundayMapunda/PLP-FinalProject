@@ -21,26 +21,22 @@ Waste reduction starts with responsible consumption and extending the lifecycle 
 
 ### Prerequisites
 
-- [Flutter](https://flutter.dev/) or [React Native](https://reactnative.dev/) installed (choose technology that suits you)
-- Node.js or Dart SDK depending on the stack
+- [Flutter](https://flutter.dev/) installed.
+- Dart SDK
 - [Firebase](https://firebase.google.com/) or alternative backend system
 
 ### Installation
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/your-username/recircle.git
-   cd recircle
+   git clone https://github.com/SundayMapunda/PLP-Final-Project.git
+   cd PLP-Final-Project
    ```
 
 2. **Install dependencies**
    - For Flutter:
      ```bash
      flutter pub get
-     ```
-   - For React Native:
-     ```bash
-     npm install
      ```
 
 3. **Configure Backend**
@@ -52,17 +48,12 @@ Waste reduction starts with responsible consumption and extending the lifecycle 
      ```bash
      flutter run
      ```
-   - For React Native:
-     ```bash
-     npm run android   # or npm run ios
-     ```
 
 ## 🧩 Architecture Overview
 
 _ReCircle_ uses:
-- **Frontend**: Flutter or React Native for cross-platform mobile UI
-- **Backend**: Firebase Firestore for real-time listings, authentication and messaging
-- **Authentication**: Google/Email sign-in
+- **Frontend**: Flutter for cross-platform mobile UI
+- **Backend**: Python (Django) for real-time listings, authentication and messaging
 - **Notifications**: Push notifications for messages and item updates
 
 ## 💡 Contributing
@@ -74,13 +65,10 @@ We welcome contributions from everyone!
 4. Push to the branch (`git push origin feature/my-feature`)
 5. Open a Pull Request
 
-Check our [issues](https://github.com/your-username/recircle/issues) for ideas to work on.
-
 ## 📚 Resources
 
 - [SDG 12 Details](https://sdgs.un.org/goals/goal12)
 - [Flutter Docs](https://flutter.dev/docs)
-- [React Native Docs](https://reactnative.dev/docs)
 
 ## 📝 License
 
